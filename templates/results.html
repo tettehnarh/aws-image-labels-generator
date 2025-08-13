@@ -2,11 +2,76 @@
 {% block content %}
 <h2>Results</h2>
 {% if results %}
-  <div>
-    <a href="/export/json/{{ session_id }}">Download JSON</a> |
+  <div style="margin:10px 0; display:flex; gap:12px; align-items:center;">
+    <a href="/export/json/{{ session_id }}">Download JSON</a>
     <a href="/export/csv/{{ session_id }}">Download CSV</a>
+    <button id="showBoxes">Show Bounding Boxes</button>
   </div>
-  <pre id="results">{{ results | tojson(indent=2) }}</pre>
+  <div style="display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap;">
+    <div>
+      <img id="img" src="{{ results.image_url }}" alt="Uploaded image" style="max-width:480px; height:auto; border:1px solid #ddd;" />
+    </div>
+    <div style="min-width:280px;">
+      <h3>Labels</h3>
+      <ul id="labels">
+        {% for label in results.labels %}
+          <li class="label-item {% if label.confidence < min_conf %}low-confidence{% endif %}">
+            <strong>{{ label.name }}</strong>
+            <span>— {{ '%.1f'|format(label.confidence) }}%</span>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <dialog id="bboxModal">
+    <div style="max-width:90vw;">
+      <div style="text-align:right; margin-bottom:6px;"><button id="closeModal">Close</button></div>
+      <div style="position:relative; display:inline-block;">
+        <img id="modalImg" src="{{ results.image_url }}" style="max-width:80vw; height:auto; display:block;" />
+        <canvas id="overlay" style="position:absolute; left:0; top:0;"></canvas>
+      </div>
+    </div>
+  </dialog>
+  <script>
+    const results = {{ results | tojson | safe }};
+    const minConf = {{ min_conf | int }};
+    const modal = document.getElementById('bboxModal');
+    const img = document.getElementById('modalImg');
+    const canvas = document.getElementById('overlay');
+    const ctx = canvas.getContext('2d');
+
+    function drawBoxes() {
+      const w = img.clientWidth;
+      const h = img.clientHeight;
+      canvas.width = w; canvas.height = h;
+      ctx.clearRect(0,0,w,h);
+      ctx.lineWidth = 2;
+      for (const label of results.labels || []) {
+        for (const inst of (label.instances || [])) {
+          const b = inst.bounding_box;
+          if (!b) continue;
+          ctx.strokeStyle = (label.confidence < minConf) ? '#d9534f' : '#28a745';
+          ctx.fillStyle = ctx.strokeStyle;
+          const x = (b.left || 0) * w;
+          const y = (b.top || 0) * h;
+          const bw = (b.width || 0) * w;
+          const bh = (b.height || 0) * h;
+          ctx.strokeRect(x, y, bw, bh);
+        }
+      }
+    }
+
+    document.getElementById('showBoxes').addEventListener('click', () => {
+      if (typeof modal.showModal === 'function') {
+        modal.showModal();
+      } else { modal.setAttribute('open', 'open'); }
+      drawBoxes();
+    });
+    document.getElementById('closeModal').addEventListener('click', () => {
+      if (typeof modal.close === 'function') modal.close(); else modal.removeAttribute('open');
+    });
+    img.addEventListener('load', drawBoxes);
+  </script>
 {% else %}
   <p>No results yet.</p>
 {% endif %}

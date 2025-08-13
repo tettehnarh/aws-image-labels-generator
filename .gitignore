@@ -31,6 +31,18 @@ instance/
 # Node (if any static tooling)
 node_modules/
 
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfvars
+terraform.tfvars
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
 # Do not commit internal docs
 specs/
 steering/

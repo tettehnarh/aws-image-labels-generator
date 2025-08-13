@@ -6,6 +6,9 @@ import io
 import csv
 from dataclasses import asdict, is_dataclass
 
+from dotenv import load_dotenv
+load_dotenv()  # Load .env from project root if present
+
 from config import Config
 from services.image_processor import ImageProcessor
 from services.aws_authenticator import AWSAuthenticator
@@ -106,7 +109,12 @@ def analyze():
 @app.route("/results/<session_id>")
 def results(session_id):
     res = RESULTS.get(session_id)
-    return render_template("results.html", session_id=session_id, results=res)
+    return render_template(
+        "results.html",
+        session_id=session_id,
+        results=res,
+        min_conf=app.config.get('DEFAULT_CONFIDENCE_THRESHOLD', 50),
+    )
 
 
 @app.route('/export/<fmt>/<session_id>')
