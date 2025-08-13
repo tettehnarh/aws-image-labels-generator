@@ -1,0 +1,6 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Results</h2>
+<pre id="results">{{ results | tojson(indent=2) if results else 'No results yet.' }}</pre>
+{% endblock %}
+

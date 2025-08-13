@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+<form id="upload-form" method="post" action="/upload" enctype="multipart/form-data">
+  <input type="file" name="image" accept="image/*" required />
+  <button type="submit">Upload</button>
+</form>
+<div id="message"></div>
+<script>
+  document.getElementById('upload-form').addEventListener('submit', function(e){
+    e.preventDefault();
+    const formData = new FormData(this);
+    fetch('/upload', { method: 'POST', body: formData }).then(r=>r.json()).then(d=>{
+      document.getElementById('message').textContent = d.message || JSON.stringify(d);
+    }).catch(err=>{ document.getElementById('message').textContent = 'Error: '+ err;});
+  });
+</script>
+{% endblock %}
+
