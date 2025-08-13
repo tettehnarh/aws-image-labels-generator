@@ -19,7 +19,8 @@ class S3Manager:
         return key
 
     def presigned_url(self, key: str, expires_in: int = 3600) -> str:
+        # boto3 expects the client method name in snake_case: 'get_object'
         return self.client.generate_presigned_url(
-            'getObject', Params={'Bucket': self.bucket, 'Key': key}, ExpiresIn=expires_in
+            'get_object', Params={'Bucket': self.bucket, 'Key': key}, ExpiresIn=expires_in
         )
 
