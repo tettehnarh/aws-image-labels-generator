@@ -43,7 +43,4 @@ override.tf.json
 *_override.tf
 *_override.tf.json
 
-# Do not commit internal docs
-specs/
-steering/
 
