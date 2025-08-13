@@ -1,6 +1,14 @@
 {% extends 'base.html' %}
 {% block content %}
 <h2>Results</h2>
-<pre id="results">{{ results | tojson(indent=2) if results else 'No results yet.' }}</pre>
+{% if results %}
+  <div>
+    <a href="/export/json/{{ session_id }}">Download JSON</a> |
+    <a href="/export/csv/{{ session_id }}">Download CSV</a>
+  </div>
+  <pre id="results">{{ results | tojson(indent=2) }}</pre>
+{% else %}
+  <p>No results yet.</p>
+{% endif %}
 {% endblock %}
 

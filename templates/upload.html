@@ -2,16 +2,28 @@
 {% block content %}
 <form id="upload-form" method="post" action="/upload" enctype="multipart/form-data">
   <input type="file" name="image" accept="image/*" required />
-  <button type="submit">Upload</button>
+  <label>Max labels <input type="number" id="max_labels" value="10" min="1" max="100" /></label>
+  <label>Min confidence (%) <input type="number" id="min_conf" value="50" min="0" max="100" /></label>
+  <button type="submit">Upload & Analyze</button>
 </form>
 <div id="message"></div>
 <script>
-  document.getElementById('upload-form').addEventListener('submit', function(e){
+  document.getElementById('upload-form').addEventListener('submit', async function(e){
     e.preventDefault();
     const formData = new FormData(this);
-    fetch('/upload', { method: 'POST', body: formData }).then(r=>r.json()).then(d=>{
-      document.getElementById('message').textContent = d.message || JSON.stringify(d);
-    }).catch(err=>{ document.getElementById('message').textContent = 'Error: '+ err;});
+    const resp = await fetch('/upload', { method: 'POST', body: formData });
+    const data = await resp.json();
+    if (!resp.ok) { document.getElementById('message').textContent = data.error || 'Upload failed'; return; }
+    const sessionId = data.session_id;
+    const params = {
+      session_id: sessionId,
+      max_labels: document.getElementById('max_labels').value,
+      confidence_threshold: document.getElementById('min_conf').value
+    };
+    const aresp = await fetch('/analyze', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(params) });
+    const adata = await aresp.json();
+    if (!aresp.ok) { document.getElementById('message').textContent = adata.error || 'Analyze failed'; return; }
+    window.location = '/results/' + sessionId;
   });
 </script>
 {% endblock %}
