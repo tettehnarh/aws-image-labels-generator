@@ -1,10 +1,14 @@
-from typing import List
+"""Transform Rekognition responses into internal models for rendering/export."""
 from models.detected_label import DetectedLabel, LabelInstance, BoundingBox
 from models.analysis_result import AnalysisResult
 
 class ResultsManager:
     @staticmethod
     def parse_rekognition_response(resp) -> AnalysisResult:
+        """Parse Rekognition DetectLabels response to AnalysisResult.
+
+        Sorts labels by confidence and preserves instances + bounding boxes.
+        """
         labels = []
         for item in resp.get('Labels', []):
             instances = []

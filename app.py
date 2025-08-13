@@ -19,7 +19,8 @@ from services.results_manager import ResultsManager
 app = Flask(__name__)
 app.config.from_object(Config)
 
-# In-memory stores for demo/dev
+# In-memory stores for demo/dev only (non-persistent). In production, replace
+# with a persistent store (e.g., Redis or a database) and/or signed sessions.
 UPLOADS: dict[str, dict] = {}
 RESULTS: dict[str, dict] = {}
 
@@ -44,6 +45,7 @@ def health():
     return {"status": "ok"}
 
 
+# Upload endpoint: validates the file, uploads to S3, returns session_id and a presigned URL for preview.
 @app.route("/upload", methods=["POST"])
 def upload():
     if 'image' not in request.files:
@@ -80,6 +82,7 @@ def upload():
     return jsonify({"session_id": session_id, "image_url": url})
 
 
+# Analyze endpoint: calls Rekognition DetectLabels using S3 reference, then stores and returns parsed results.
 @app.route("/analyze", methods=["POST"])
 def analyze():
     payload = request.get_json(silent=True) or request.form
@@ -117,6 +120,7 @@ def results(session_id):
     )
 
 
+# Export endpoint: download results in JSON or CSV format.
 @app.route('/export/<fmt>/<session_id>')
 def export(fmt, session_id):
     res = RESULTS.get(session_id)
